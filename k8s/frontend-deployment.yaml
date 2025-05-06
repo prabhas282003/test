@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: frontend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: backend
+      app: frontend
   template:
     metadata:
       labels:
-        app: backend
+        app: frontend
     spec:
       containers:
-        - name: backend
-          image: <your-dockerhub-username>/backend:latest
+        - name: frontend
+          image: <your-dockerhub-username>/frontend:latest
           ports:
-            - containerPort: 5000
+            - containerPort: 80

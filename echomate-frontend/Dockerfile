@@ -1,21 +1,23 @@
 # Build stage
-FROM node:18-alpine as build
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
+# Install dependencies with legacy peer deps to bypass conflicts
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
+
+# Copy the rest of the app
 COPY . .
 
+# Build the app
 RUN npm run build
 
-# Serve with Nginx
+# Production stage - Serve using nginx
 FROM nginx:alpine
 
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Optional: Add custom nginx config
-# COPY nginx.conf /etc/nginx/nginx.conf
+# Copy built app from previous stage
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
 
