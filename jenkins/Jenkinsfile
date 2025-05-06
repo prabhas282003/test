@@ -1,26 +1,37 @@
 pipeline {
     agent any
-    
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Create in Jenkins > Manage Credentials
+        DOCKER_HUB_USER = 'your-dockerhub-username'
+    }
+
     stages {
-        stage('Build Frontend') {
+        stage('Build Frontend Image') {
             steps {
                 dir('frontend') {
-                    sh 'docker build -t frontend:latest .'
+                    sh 'docker build -t $DOCKER_HUB_USER/frontend:latest .'
+                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_USER --password-stdin'
+                    sh 'docker push $DOCKER_HUB_USER/frontend:latest'
                 }
             }
         }
-        
-        stage('Build Backend') {
+
+        stage('Build Backend Image') {
             steps {
                 dir('backend') {
-                    sh 'docker build -t backend:latest .'
+                    sh 'docker build -t $DOCKER_HUB_USER/backend:latest .'
+                    sh 'docker push $DOCKER_HUB_USER/backend:latest'
                 }
             }
         }
-        
-        stage('Deploy to K8s') {
+
+        stage('Deploy to k3s') {
             steps {
-                sh 'kubectl apply -f k8s/'
+                sh 'kubectl apply -f frontend/deployment.yaml'
+                sh 'kubectl apply -f frontend/service.yaml'
+                sh 'kubectl apply -f backend/deployment.yaml'
+                sh 'kubectl apply -f backend/service.yaml'
             }
         }
     }
